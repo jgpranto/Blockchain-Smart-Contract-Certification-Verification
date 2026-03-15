@@ -2,125 +2,576 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CertChain 🎓</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CredVerify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
+    :root {
+      --white: #ffffff;
+      --bg: #f4f6fb;
+      --navy: #0f2557;
+      --navy-light: #1a3a7c;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --error: #dc2626;
+      --error-bg: #fef2f2;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+      --card-shadow-hover: 0 4px 6px rgba(0,0,0,0.07), 0 10px 30px rgba(0,0,0,0.1);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-      padding: 30px;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
     }
-    h1 { text-align: center; color: #1a1a2e; margin-bottom: 5px; }
-    .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
-    .box {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      margin: 20px auto;
-      max-width: 700px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+
+    /* HEADER */
+    header {
+      background: var(--navy);
+      padding: 0 40px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.15);
     }
-    h2 { color: #1a1a2e; margin-bottom: 10px; }
-    p { color: #555; margin-bottom: 15px; }
-    input[type="file"], input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-    button {
-      background: #1a1a2e;
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
       color: white;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      margin-top: 10px;
-      width: 100%;
+      letter-spacing: -0.5px;
     }
-    button:hover { background: #0f3460; }
-    .result {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      display: none;
+
+    .logo span { color: #60a5fa; }
+
+    .header-badge {
+      background: rgba(96,165,250,0.15);
+      border: 1px solid rgba(96,165,250,0.3);
+      color: #93c5fd;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
     }
-    .success { background: #d4edda; color: #155724; display: block; }
-    .error { background: #f8d7da; color: #721c24; display: block; }
-    .warning { background: #fff3cd; color: #856404; display: block; }
-    #walletAddress {
-      margin-top: 10px;
-      color: #0f3460;
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      padding: 60px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at center, rgba(37,99,235,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      color: white;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .hero p {
+      color: #93c5fd;
+      font-size: 16px;
+      font-weight: 300;
+      max-width: 520px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      position: relative;
+    }
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: white;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      color: #93c5fd;
+      font-size: 11px;
+      font-weight: 400;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card:hover { box-shadow: var(--card-shadow-hover); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 6px;
+    }
+
+    .card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .icon-blue { background: #eff6ff; }
+    .icon-green { background: #ecfdf5; }
+    .icon-red { background: #fef2f2; }
+    .icon-purple { background: #f5f3ff; }
+
+    .card h2 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .card-subtitle {
+      color: var(--muted);
       font-size: 13px;
-      word-break: break-all;
+      margin-bottom: 20px;
+      margin-left: 60px;
+      line-height: 1.6;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 18px 0;
+    }
+
+    /* INPUTS */
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .input-group { margin-bottom: 14px; }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: #fafafa;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+
+    input[type="file"] { cursor: pointer; padding: 10px 16px; }
+    input::placeholder { color: #a0aec0; }
+
+    /* BUTTONS */
+    .btn {
+      width: 100%;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.3px;
+      margin-top: 4px;
+    }
+
+    .btn-primary {
+      background: var(--navy);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--navy-light);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15,37,87,0.25);
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: var(--error);
+    }
+
+    .btn-danger:hover {
+      background: #fecaca;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover { background: var(--bg); }
+
+    /* WALLET STATUS */
+    .wallet-status {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: var(--accent-light);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .wallet-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* RESULTS */
+    .result {
+      margin-top: 16px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .result.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #a7f3d0;
+      display: block;
+    }
+
+    .result.error {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #fecaca;
+      display: block;
+    }
+
+    .result.warning {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid #fde68a;
+      display: block;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(15,37,87,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 520px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: var(--navy);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: var(--bg);
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover { background: var(--border); }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-buttons .btn { margin-top: 0; }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy);
+      color: #64748b;
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+    }
+
+    footer span { color: #93c5fd; }
+
+    @media (max-width: 600px) {
+      header { padding: 0 20px; }
+      .hero { padding: 40px 20px; }
+      .hero h1 { font-size: 28px; }
+      .hero-stats { gap: 24px; }
+      .card { padding: 24px; }
     }
   </style>
 </head>
 <body>
 
-  <h1>CertChain 🎓</h1>
-  <p class="subtitle">Blockchain Certificate Verification — Powered by Ethereum</p>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Cred<span>Verify</span></div>>
+  </header>
 
-  <!-- CONNECT WALLET -->
-  <div class="box">
-    <h2>Step 1 — Connect Your Wallet</h2>
-    <p>Connect MetaMask to get started</p>
-    <button onclick="connectWallet()">🦊 Connect MetaMask</button>
-    <p id="walletAddress"></p>
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Blockchain Certificate Verification</h1>
+    <p>Instant, tamper-proof credential verification — eliminating the need for physical document delivery worldwide.</p>
   </div>
 
-  <!-- ISSUE CERTIFICATE -->
-  <div class="box">
-    <h2>🏛️ Issue Certificate (University A)</h2>
-    <p>Upload the student's JSON certificate file to record it on blockchain</p>
-    <input type="file" id="issueFile" accept=".json">
-    <button onclick="issueCertificate()">Issue Certificate on Blockchain</button>
-    <div id="issueResult" class="result"></div>
+  <!-- MAIN -->
+  <div class="container">
+
+    <!-- CONNECT WALLET -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-blue">🦊</div>
+        <h2>Connect Wallet</h2>
+      </div>
+      <p class="card-subtitle">Connect your MetaMask wallet to interact with the blockchain</p>
+      <div class="divider"></div>
+      <button class="btn btn-primary" onclick="connectWallet()">Connect MetaMask Wallet</button>
+      <div class="wallet-status" id="walletStatus">
+        <div class="wallet-dot"></div>
+        <span id="walletAddress">Wallet Connected Successfully</span>
+      </div>
+    </div>
+
+    <!-- GENERATE CERTIFICATE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-purple">⚙️</div>
+        <h2>Generate Certificate</h2>
+      </div>
+      <p class="card-subtitle">Generate a verifiable certificate JSON file for a student</p>
+      <div class="divider"></div>
+      <button class="btn btn-primary" onclick="openModal()">Generate Certificate File</button>
+    </div>
+
+    <!-- ISSUE CERTIFICATE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-green">🎓</div>
+        <h2>Issue Certificate</h2>
+      </div>
+      <p class="card-subtitle">Upload and register a certificate on the blockchain as an issuing institution</p>
+      <div class="divider"></div>
+      <div class="input-group">
+        <label>Certificate File</label>
+        <input type="file" id="issueFile" accept=".json">
+      </div>
+      <button class="btn btn-primary" onclick="issueCertificate()">Issue Certificate on Blockchain</button>
+      <div id="issueResult" class="result"></div>
+    </div>
+
+    <!-- VERIFY CERTIFICATE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-blue">🔍</div>
+        <h2>Verify Certificate</h2>
+      </div>
+      <p class="card-subtitle">Verify the authenticity of a certificate as a verifying institution</p>
+      <div class="divider"></div>
+      <div class="input-group">
+        <label>Certificate File</label>
+        <input type="file" id="verifyFile" accept=".json">
+      </div>
+      <div class="input-group">
+        <label>Issuer Wallet Address</label>
+        <input type="text" id="issuerAddress" placeholder="0x...">
+      </div>
+      <button class="btn btn-primary" onclick="verifyCertificate()">Verify Certificate</button>
+      <div id="verifyResult" class="result"></div>
+    </div>
+
+    <!-- REVOKE CERTIFICATE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon icon-red">🚫</div>
+        <h2>Revoke Certificate</h2>
+      </div>
+      <p class="card-subtitle">Permanently revoke a certificate from the blockchain (e.g. academic dishonesty)</p>
+      <div class="divider"></div>
+      <div class="input-group">
+        <label>Certificate File</label>
+        <input type="file" id="revokeFile" accept=".json">
+      </div>
+      <button class="btn btn-danger" onclick="revokeCertificate()">Revoke Certificate</button>
+      <div id="revokeResult" class="result"></div>
+    </div>
+
   </div>
 
-  <!-- VERIFY CERTIFICATE -->
-  <div class="box">
-    <h2>🔍 Verify Certificate (University B)</h2>
-    <p>Upload the JSON certificate and enter the issuing university's wallet address</p>
-    <input type="file" id="verifyFile" accept=".json">
-    <input type="text" id="issuerAddress" placeholder="Enter University A's wallet address (0x...)">
-    <button onclick="verifyCertificate()">Verify Certificate</button>
-    <div id="verifyResult" class="result"></div>
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Student Certificate Details</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="input-group">
+        <label>Student Full Name</label>
+        <input type="text" id="studentName" placeholder="e.g. John Doe">
+      </div>
+      <div class="input-group">
+        <label>Student ID</label>
+        <input type="text" id="studentID" placeholder="e.g. CSE-2024-001">
+      </div>
+      <div class="input-group">
+        <label>Degree Title</label>
+        <input type="text" id="degreeTitle" placeholder="e.g. Bachelor of Computer Science">
+      </div>
+      <div class="input-group">
+        <label>Institution Name</label>
+        <input type="text" id="universityName" placeholder="e.g. Youngstown State University">
+      </div>
+      <div class="input-group">
+        <label>Graduation Year</label>
+        <input type="text" id="gradYear" placeholder="e.g. 2024">
+      </div>
+      <div class="input-group">
+        <label>GPA</label>
+        <input type="text" id="gpa" placeholder="e.g. 3.8/4.0">
+      </div>
+      <div id="generateResult" class="result"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-primary" onclick="generateJSON()">💾 Save & Download</button>
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
   </div>
 
-  <!-- REVOKE CERTIFICATE -->
-  <div class="box">
-    <h2>🚫 Revoke Certificate (University A)</h2>
-    <p>Upload the JSON certificate to revoke it from blockchain</p>
-    <input type="file" id="revokeFile" accept=".json">
-    <button onclick="revokeCertificate()" style="background: #c0392b;">Revoke Certificate</button>
-    <div id="revokeResult" class="result"></div>
-  </div>
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 <span>CredVerify</span> — Blockchain Certificate Verification Platform &nbsp;|&nbsp; Built on <span>Ethereum Sepolia</span></p>
+  </footer>
 
   <script>
-    // ⚠️ REPLACE THESE WITH YOUR VALUES
-    // Certificate Contract
+    // Contract addresses from your deployment
     const CONTRACT_ADDRESS = "0x5c0c2dC385cb530210ee61ebb925F1C24644942A";
-    const ABI = [ { "anonymous": false, "inputs": [ { "indexed": true, "internalType": "bytes32", "name": "certHash", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "issuer", "type": "address" } ], "name": "CertificateIssued", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "internalType": "bytes32", "name": "certHash", "type": "bytes32" }, { "indexed": true, "internalType": "address", "name": "issuer", "type": "address" } ], "name": "CertificateRevoked", "type": "event" }, { "inputs": [ { "internalType": "bytes32", "name": "certHash", "type": "bytes32" } ], "name": "issueCertificate", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "bytes32", "name": "certHash", "type": "bytes32" } ], "name": "revokeCertificate", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "bytes32", "name": "", "type": "bytes32" }, { "internalType": "address", "name": "", "type": "address" } ], "name": "certificates", "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "bytes32", "name": "certHash", "type": "bytes32" }, { "internalType": "address", "name": "issuer", "type": "address" } ], "name": "verifyCertificate", "outputs": [ { "internalType": "uint256", "name": "issuedAt", "type": "uint256" } ], "stateMutability": "view", "type": "function" } ];
+    const ABI = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"certHash","type":"bytes32"},{"indexed":true,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateIssued","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"certHash","type":"bytes32"},{"indexed":true,"internalType":"address","name":"issuer","type":"address"}],"name":"CertificateRevoked","type":"event"},{"inputs":[{"internalType":"bytes32","name":"certHash","type":"bytes32"}],"name":"issueCertificate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"certHash","type":"bytes32"}],"name":"revokeCertificate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"address","name":"","type":"address"}],"name":"certificates","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"certHash","type":"bytes32"},{"internalType":"address","name":"issuer","type":"address"}],"name":"verifyCertificate","outputs":[{"internalType":"uint256","name":"issuedAt","type":"uint256"}],"stateMutability":"view","type":"function"}];
 
-// Registry Contract
-const REGISTRY_ADDRESS = "0x2F024c5eF0BAA75989a9A221c446e9Ccb7BB0A13";
-const REGISTRY_ABI = [ { "inputs": [ { "internalType": "address", "name": "uniAddress", "type": "address" }, { "internalType": "string", "name": "name", "type": "string" } ], "name": "addUniversity", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "address", "name": "uniAddress", "type": "address" } ], "name": "removeUniversity", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [ { "indexed": true, "internalType": "address", "name": "uniAddress", "type": "address" }, { "indexed": false, "internalType": "string", "name": "name", "type": "string" } ], "name": "UniversityAdded", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "internalType": "address", "name": "uniAddress", "type": "address" } ], "name": "UniversityRemoved", "type": "event" }, { "inputs": [ { "internalType": "address", "name": "uniAddress", "type": "address" } ], "name": "getUniversity", "outputs": [ { "internalType": "bool", "name": "", "type": "bool" }, { "internalType": "string", "name": "", "type": "string" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "address", "name": "", "type": "address" } ], "name": "isRegistered", "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [ { "internalType": "address", "name": "", "type": "address" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "address", "name": "", "type": "address" } ], "name": "universityNames", "outputs": [ { "internalType": "string", "name": "", "type": "string" } ], "stateMutability": "view", "type": "function" } ]
-    let contract;
-    let registryContract;
-    let signer;
+    const REGISTRY_ADDRESS = "0x2F024c5eF0BAA75989a9A221c446e9Ccb7BB0A13";
+    const REGISTRY_ABI = [{"inputs":[{"internalType":"address","name":"uniAddress","type":"address"},{"internalType":"string","name":"name","type":"string"}],"name":"addUniversity","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"uniAddress","type":"address"}],"name":"removeUniversity","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"uniAddress","type":"address"},{"indexed":false,"internalType":"string","name":"name","type":"string"}],"name":"UniversityAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"uniAddress","type":"address"}],"name":"UniversityRemoved","type":"event"},{"inputs":[{"internalType":"address","name":"uniAddress","type":"address"}],"name":"getUniversity","outputs":[{"internalType":"bool","name":"","type":"bool"},{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"isRegistered","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"universityNames","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}];
 
-    // Connect MetaMask
+    let contract, registryContract, signer;
+
     async function connectWallet() {
-      if (!window.ethereum) {
-        alert("Please install MetaMask!");
-        return;
-      }
+      if (!window.ethereum) { alert("Please install MetaMask!"); return; }
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
@@ -128,13 +579,13 @@ const REGISTRY_ABI = [ { "inputs": [ { "internalType": "address", "name": "uniAd
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
         registryContract = new ethers.Contract(REGISTRY_ADDRESS, REGISTRY_ABI, signer);
         const address = await signer.getAddress();
-        document.getElementById("walletAddress").innerText = "✅ Connected: " + address;
-      } catch (err) {
-        alert("Connection failed: " + err.message);
-      }
+        const walletStatus = document.getElementById("walletStatus");
+        walletStatus.style.display = "flex";
+        document.getElementById("walletAddress").innerText = 
+          "Connected: " + address.slice(0,6) + "..." + address.slice(-4);
+      } catch (err) { alert("Connection failed: " + err.message); }
     }
 
-    // Generate SHA-256 hash from JSON file
     async function generateHash(file) {
       const buffer = await file.arrayBuffer();
       const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
@@ -142,98 +593,128 @@ const REGISTRY_ABI = [ { "inputs": [ { "internalType": "address", "name": "uniAd
       return "0x" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    // Issue Certificate
     async function issueCertificate() {
       const resultDiv = document.getElementById("issueResult");
       const file = document.getElementById("issueFile").files[0];
-      if (!file) { alert("Please upload a JSON file!"); return; }
-      if (!contract) { alert("Please connect wallet first!"); return; }
-
+      if (!file) { alert("Please upload a certificate file!"); return; }
+      if (!contract) { alert("Please connect your wallet first!"); return; }
       resultDiv.className = "result warning";
-      resultDiv.innerText = "⏳ Generating hash and sending to blockchain...";
-
+      resultDiv.innerText = "⏳ Processing... Please confirm the transaction in MetaMask.";
       try {
         const hash = await generateHash(file);
         const tx = await contract.issueCertificate(hash);
         await tx.wait();
         resultDiv.className = "result success";
-        resultDiv.innerText = "✅ Certificate issued on blockchain!\nTransaction: " + tx.hash;
+        resultDiv.innerText = "✅ Certificate successfully issued on blockchain!\nTransaction ID: " + tx.hash;
       } catch (err) {
         resultDiv.className = "result error";
         resultDiv.innerText = "❌ Error: " + err.message;
       }
     }
 
-    // Verify Certificate
-async function verifyCertificate() {
+    async function verifyCertificate() {
       const resultDiv = document.getElementById("verifyResult");
       const file = document.getElementById("verifyFile").files[0];
       const issuerAddress = document.getElementById("issuerAddress").value.trim();
-      if (!file) { alert("Please upload a JSON file!"); return; }
-      if (!issuerAddress) { alert("Please enter the issuing university's wallet address!"); return; }
-      if (!contract) { alert("Please connect wallet first!"); return; }
-
+      if (!file) { alert("Please upload a certificate file!"); return; }
+      if (!issuerAddress) { alert("Please enter the issuer wallet address!"); return; }
+      if (!contract) { alert("Please connect your wallet first!"); return; }
       resultDiv.className = "result warning";
-      resultDiv.innerText = "⏳ Checking blockchain...";
-
+      resultDiv.innerText = "⏳ Checking blockchain records...";
       try {
         const hash = await generateHash(file);
-        
-        // Step 1 — Check if certificate exists
         const timestamp = await contract.verifyCertificate(hash, issuerAddress);
-        
         if (timestamp.toNumber() === 0) {
           resultDiv.className = "result error";
-          resultDiv.innerText = "❌ FAKE or UNREGISTERED CERTIFICATE!";
+          resultDiv.innerText = "❌ Certificate not found on blockchain.\nThis document may be fraudulent or unregistered.";
           return;
         }
-
-        // Step 2 — Check if issuer is a trusted university
         const [isRegistered, uniName] = await registryContract.getUniversity(issuerAddress);
-        
-        const date = new Date(timestamp.toNumber() * 1000).toLocaleDateString();
-        
+        const date = new Date(timestamp.toNumber() * 1000).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
         if (isRegistered) {
           resultDiv.className = "result success";
-          resultDiv.innerText = 
-            "✅ GENUINE CERTIFICATE!\n" +
-            "University: " + uniName + "\n" +
-            "Date Issued: " + date;
+          resultDiv.innerText = "✅ Certificate Verified Successfully!\n\nIssuing Institution: " + uniName + "\nDate of Issue: " + date;
         } else {
           resultDiv.className = "result warning";
-          resultDiv.innerText = 
-            "⚠️ Certificate exists on blockchain BUT\n" +
-            "Issuer is NOT a registered university!\n" +
-            "Issuer address: " + issuerAddress;
+          resultDiv.innerText = "⚠️ Certificate exists on blockchain but the issuing institution is not a registered entity.\n\nIssuer Address: " + issuerAddress;
         }
-
       } catch (err) {
         resultDiv.className = "result error";
         resultDiv.innerText = "❌ Error: " + err.message;
       }
     }
 
-    // Revoke Certificate
     async function revokeCertificate() {
       const resultDiv = document.getElementById("revokeResult");
       const file = document.getElementById("revokeFile").files[0];
-      if (!file) { alert("Please upload a JSON file!"); return; }
-      if (!contract) { alert("Please connect wallet first!"); return; }
-
+      if (!file) { alert("Please upload a certificate file!"); return; }
+      if (!contract) { alert("Please connect your wallet first!"); return; }
       resultDiv.className = "result warning";
-      resultDiv.innerText = "⏳ Revoking certificate from blockchain...";
-
+      resultDiv.innerText = "⏳ Processing revocation... Please confirm in MetaMask.";
       try {
         const hash = await generateHash(file);
         const tx = await contract.revokeCertificate(hash);
         await tx.wait();
         resultDiv.className = "result success";
-        resultDiv.innerText = "✅ Certificate successfully revoked!\nTransaction: " + tx.hash;
+        resultDiv.innerText = "✅ Certificate successfully revoked from blockchain.\nTransaction ID: " + tx.hash;
       } catch (err) {
         resultDiv.className = "result error";
         resultDiv.innerText = "❌ Error: " + err.message;
       }
     }
+
+    function openModal() {
+      document.getElementById("modalOverlay").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("modalOverlay").classList.remove("open");
+      ["studentName","studentID","degreeTitle","universityName","gradYear","gpa"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      const r = document.getElementById("generateResult");
+      r.className = "result";
+      r.innerText = "";
+    }
+
+    function generateJSON() {
+      const studentName = document.getElementById("studentName").value.trim();
+      const studentID = document.getElementById("studentID").value.trim();
+      const degreeTitle = document.getElementById("degreeTitle").value.trim();
+      const universityName = document.getElementById("universityName").value.trim();
+      const gradYear = document.getElementById("gradYear").value.trim();
+      const gpa = document.getElementById("gpa").value.trim();
+
+      if (!studentName || !studentID || !degreeTitle || !universityName || !gradYear || !gpa) {
+        alert("Please fill in all fields!");
+        return;
+      }
+
+      const certificate = {
+        studentName, studentID, degreeTitle,
+        institutionName: universityName,
+        graduationYear: gradYear, gpa,
+        generatedAt: new Date().toISOString()
+      };
+
+      const jsonString = JSON.stringify(certificate, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = studentName.replace(" ", "_") + "_certificate.json";
+      a.click();
+
+      const resultDiv = document.getElementById("generateResult");
+      resultDiv.className = "result success";
+      resultDiv.innerText = "✅ Certificate file downloaded! Close this and upload it in Issue Certificate.";
+    }
+
+    document.getElementById("modalOverlay").addEventListener("click", function(e) {
+      if (e.target === this) closeModal();
+    });
   </script>
 
 </body>
